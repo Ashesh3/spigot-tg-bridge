@@ -40,7 +40,7 @@ class Bot(private var plugin: Plugin) : TelegramLongPollingBot() {
             )!!
             val offlineStr = plugin.config.getString(
                 "strings.nobodyOnline",
-                "Nobody online"
+                "Nobody is online"
             )!!
             val text =
                 if (playerList.isNotEmpty()) "$onlineStr:\n$playerStr"
@@ -48,7 +48,7 @@ class Bot(private var plugin: Plugin) : TelegramLongPollingBot() {
             reply(msg, text) { it.replyToMessageId = msg.messageId }
         }
         if (msg.text.startsWith("/time")) {
-            val t = plugin.server.worlds[0].time
+            val t = plugin.server.getWorld(plugin.config.getString("worldTime")!!)!!.time
             var text = when {
                 t <= 12000 -> "\uD83C\uDFDE Day"
                 t <= 13800 -> "\uD83C\uDF06 Sunset"
@@ -103,7 +103,7 @@ class Bot(private var plugin: Plugin) : TelegramLongPollingBot() {
     }
 
     private fun mcMessageStr(username: String, text: String): String =
-        "<i>$username</i>: $text"
+        "<b>$username</b>: <code>$text</code>"
 
     private fun rawUserMention(user: User): String =
         (if (user.firstName.length < 2) null else user.firstName)

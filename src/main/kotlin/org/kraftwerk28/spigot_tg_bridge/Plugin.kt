@@ -1,8 +1,11 @@
 package org.kraftwerk28.spigot_tg_bridge
 
 import com.vdurmont.emoji.EmojiParser
+import org.bukkit.Location
+import org.bukkit.Statistic
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -10,6 +13,9 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import java.io.File
+import java.util.*
+import java.util.concurrent.TimeUnit
+
 
 class Plugin : JavaPlugin(), Listener {
 
@@ -53,6 +59,23 @@ class Plugin : JavaPlugin(), Listener {
         server.broadcastMessage(prep)
     }
 
+    private fun formatTime(mill: Long): String? {
+        var millis = mill
+        val days = TimeUnit.MILLISECONDS.toDays(millis)
+        millis -= TimeUnit.DAYS.toMillis(days)
+        val hours = TimeUnit.MILLISECONDS.toHours(millis)
+        millis -= TimeUnit.HOURS.toMillis(hours)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
+        millis -= TimeUnit.MINUTES.toMillis(minutes)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(millis)
+        return "$days days $hours hours $minutes mintues $seconds seconds"
+    }
+
+    private fun formatLocation(loc: Location): String? {
+        return "{" + "world=" + (loc.world
+            ?.name ?: "") + ",x=" + loc.x + ",y=" + loc.y + ",z=" + loc.z + "}"
+    }
+
     fun sendMessageToMCFrom(username: String, text: String) {
         val prep = EmojiParser.parseToAliases("<$username> $text")
         server.broadcastMessage(prep)
@@ -65,10 +88,17 @@ class Plugin : JavaPlugin(), Listener {
     }
 
     @EventHandler
+    fun onPlayerDeath(event: PlayerDeathEvent){
+        if (config.getBoolean("logDeath", false)) {
+            tgBot?.broadcastToTG("<b>${event.deathMessage}</b>")
+        }
+    }
+
+    @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         if (config.getBoolean("logJoinLeave", false)) {
             val joinStr = config.getString("strings.joined", "joined")
-            tgBot?.broadcastToTG("<b>${event.player.displayName}</b> $joinStr.")
+            tgBot?.broadcastToTG("<b>${event.player.displayName} $joinStr.</b>\n<b>IP:</b> <code>${event.player.address.toString().replace("/", "")}</code>\n<b>UUID:</b> <code>${Date().toString()}</code>")
         }
     }
 
@@ -76,7 +106,7 @@ class Plugin : JavaPlugin(), Listener {
     fun onPlayerLeave(event: PlayerQuitEvent) {
         if (config.getBoolean("logJoinLeave", false)) {
             val leftStr = config.getString("strings.left", "joined")
-            tgBot?.broadcastToTG("<b>${event.player.displayName}</b> $leftStr.")
+            tgBot?.broadcastToTG("<b>${event.player.displayName} $leftStr</b><b>Total Time Played: </b><code>${formatTime(((event.player.getStatistic( Statistic.PLAY_ONE_MINUTE ) * 0.05 * 1000).toLong()))}</code>\n<b>Last Location: </b><code>${formatLocation(event.player.location)}</code>\n<b>UUID: </b><code>${event.player.uniqueId}/code>")
         }
     }
 }
