@@ -4,7 +4,7 @@
 
 ## How to use:
 
-1. Download .jar file from [releases page](https://github.com/kraftwerk28/spigot-tg-bridge/releases), and put it in `plugins/` directory on your server **OR** clone this repo and run `gradle shadowJar` inside repo's directory
+1. Download .jar file from [Spigot page](https://www.spigotmc.org/resources/telegram-reporter-reborn.80768/), and put it in `plugins/` directory on your server **OR** clone this repo and run `gradle shadowJar` inside repo's directory
 
 2. Choose one of below to configure plugin:
     1. Run Spigot server, plugin will log `"No config file found! Saving default one."`. After that, stop server and proceed to 3rd step.
